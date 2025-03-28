@@ -4,19 +4,15 @@ Docker Sandbox Module
 Provides secure containerized execution environment with resource limits
 and isolation for running untrusted code.
 """
-from app.sandbox.client import (
-    BaseSandboxClient,
-    LocalSandboxClient,
-    create_sandbox_client,
-)
-from app.sandbox.core.exceptions import (
-    SandboxError,
-    SandboxResourceError,
-    SandboxTimeoutError,
-)
-from app.sandbox.core.manager import SandboxManager
-from app.sandbox.core.sandbox import DockerSandbox
+from .client import (BaseSandboxClient, LocalSandboxClient,
+                     create_sandbox_client)
+from .core.exceptions import (SandboxError, SandboxResourceError,
+                              SandboxTimeoutError)
+from .core.manager import SandboxManager
+from .core.sandbox import DockerSandbox
 
+# Create default sandbox client instance
+SANDBOX_CLIENT = create_sandbox_client()
 
 __all__ = [
     "DockerSandbox",
@@ -27,4 +23,5 @@ __all__ = [
     "SandboxError",
     "SandboxTimeoutError",
     "SandboxResourceError",
+    "SANDBOX_CLIENT",
 ]
