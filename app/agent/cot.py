@@ -22,24 +22,25 @@ class CoTAgent(BaseAgent):
 
     max_steps: int = 1  # CoT typically only needs one step to complete reasoning
 
-    async def step(self) -> str:
+    async def step(self, session_id: str = "default") -> str:
         """Execute one step of chain of thought reasoning"""
         logger.info(f"🧠 {self.name} is thinking...")
+        session_messages = self.memory.get_session_messages(session_id)
 
         # If next_step_prompt exists and this isn't the first message, add it to user messages
-        if self.next_step_prompt and len(self.messages) > 1:
+        if self.next_step_prompt and len(session_messages) > 1:
             self.memory.add_message(Message.user_message(self.next_step_prompt))
 
         # Use system prompt and user messages
         response = await self.llm.ask(
-            messages=self.messages,
+            messages=session_messages,
             system_msgs=[Message.system_message(self.system_prompt)]
             if self.system_prompt
             else None,
         )
 
         # Record assistant's response
-        self.memory.add_message(Message.assistant_message(response))
+        self.memory.add_message(Message.assistant_message(response), session_id=session_id)
 
         # Set state to finished after completion
         self.state = AgentState.FINISHED

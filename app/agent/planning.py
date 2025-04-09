@@ -49,14 +49,15 @@ class PlanningAgent(ToolCallAgent):
 
         return self
 
-    async def think(self) -> bool:
+    async def think(self, session_id: str = "default") -> bool:
         """Decide the next action based on plan status."""
         prompt = (
             f"CURRENT PLAN STATUS:\n{await self.get_plan()}\n\n{self.next_step_prompt}"
             if self.active_plan_id
             else self.next_step_prompt
         )
-        self.messages.append(Message.user_message(prompt))
+
+        self.memory.add_message(Message.user_message(prompt), session_id)
 
         # Get the current step index before thinking
         self.current_step_index = await self._get_current_step_index()

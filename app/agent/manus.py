@@ -37,13 +37,14 @@ class Manus(BrowserAgent):
         )
     )
 
-    async def think(self) -> bool:
+    async def think(self, session_id: str = "default") -> bool:
         """Process current state and decide next actions with appropriate context."""
         # Store original prompt
         original_prompt = self.next_step_prompt
 
+        session_messages = self.memory.get_session_messages(session_id)
         # Only check recent messages (last 3) for browser activity
-        recent_messages = self.memory.messages[-3:] if self.memory.messages else []
+        recent_messages = session_messages[-3:] if session_messages else []
         browser_in_use = any(
             "browser_use" in msg.content.lower()
             for msg in recent_messages

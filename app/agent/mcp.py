@@ -43,6 +43,7 @@ class MCPAgent(ToolCallAgent):
         server_url: Optional[str] = None,
         command: Optional[str] = None,
         args: Optional[List[str]] = None,
+        session_id: str = "default"
     ) -> None:
         """Initialize the MCP connection.
 
@@ -71,7 +72,7 @@ class MCPAgent(ToolCallAgent):
         self.available_tools = self.mcp_clients
 
         # Store initial tool schemas
-        await self._refresh_tools()
+        await self._refresh_tools(session_id)
 
         # Add system message about available tools
         tool_names = list(self.mcp_clients.tool_map.keys())
@@ -81,10 +82,11 @@ class MCPAgent(ToolCallAgent):
         self.memory.add_message(
             Message.system_message(
                 f"{self.system_prompt}\n\nAvailable MCP tools: {tools_info}"
-            )
+            ),
+            session_id
         )
 
-    async def _refresh_tools(self) -> Tuple[List[str], List[str]]:
+    async def _refresh_tools(self, session_id: str = "default") -> Tuple[List[str], List[str]]:
         """Refresh the list of available tools from the MCP server.
 
         Returns:
@@ -117,21 +119,23 @@ class MCPAgent(ToolCallAgent):
         if added_tools:
             logger.info(f"Added MCP tools: {added_tools}")
             self.memory.add_message(
-                Message.system_message(f"New tools available: {', '.join(added_tools)}")
+                Message.system_message(f"New tools available: {', '.join(added_tools)}"),
+                session_id
             )
         if removed_tools:
             logger.info(f"Removed MCP tools: {removed_tools}")
             self.memory.add_message(
                 Message.system_message(
                     f"Tools no longer available: {', '.join(removed_tools)}"
-                )
+                ),
+                session_id
             )
         if changed_tools:
             logger.info(f"Changed MCP tools: {changed_tools}")
 
         return added_tools, removed_tools
 
-    async def think(self) -> bool:
+    async def think(self, session_id: str = "default") -> bool:
         """Process current state and decide next action."""
         # Check MCP session and tools availability
         if not self.mcp_clients.session or not self.mcp_clients.tool_map:
@@ -149,19 +153,20 @@ class MCPAgent(ToolCallAgent):
                 return False
 
         # Use the parent class's think method
-        return await super().think()
+        return await super().think(session_id)
 
-    async def _handle_special_tool(self, name: str, result: Any, **kwargs) -> None:
+    async def _handle_special_tool(self, name: str, result: Any, session_id: str = "default", **kwargs) -> None:
         """Handle special tool execution and state changes"""
         # First process with parent handler
-        await super()._handle_special_tool(name, result, **kwargs)
+        await super()._handle_special_tool(name, result, session_id, **kwargs)
 
         # Handle multimedia responses
         if isinstance(result, ToolResult) and result.base64_image:
             self.memory.add_message(
                 Message.system_message(
                     MULTIMEDIA_RESPONSE_PROMPT.format(tool_name=name)
-                )
+                ),
+                session_id
             )
 
     def _should_finish_execution(self, name: str, **kwargs) -> bool:
@@ -175,10 +180,10 @@ class MCPAgent(ToolCallAgent):
             await self.mcp_clients.disconnect()
             logger.info("MCP connection closed")
 
-    async def run(self, request: Optional[str] = None) -> str:
+    async def run(self, request: Optional[str] = None, session_id: str = "default") -> str:
         """Run the agent with cleanup when done."""
         try:
-            result = await super().run(request)
+            result = await super().run(request, session_id)
             return result
         finally:
             # Ensure cleanup happens even if there's an error

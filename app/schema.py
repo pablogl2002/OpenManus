@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Any, List, Literal, Optional, Union
-
 from pydantic import BaseModel, Field
 
+from abc import abstractmethod
 
 class Role(str, Enum):
     """Message role options"""
@@ -156,29 +156,25 @@ class Message(BaseModel):
         )
 
 
-class Memory(BaseModel):
-    messages: List[Message] = Field(default_factory=list)
-    max_messages: int = Field(default=100)
+class BaseMemory(BaseModel):
+    @abstractmethod
+    def add_message(self, message: Message, session_id: str="default") -> None:
+        pass
+    @abstractmethod
+    def add_messages(self, messages: List[Message], session_id: str="default") -> None:
+        pass
+    @abstractmethod
+    def clear(self, session_id: str="default") -> None:
+        pass
+    @abstractmethod
+    def get_recent_messages(self, n: int, session_id: str="default") -> List[Message]:
+        pass
+    @abstractmethod
+    def get_session_messages(self, session_id: str="default") -> List[Message]:
+        pass
+    @abstractmethod
+    def to_dict_list(self, session_id: str="default") -> List[dict]:
+        pass
 
-    def add_message(self, message: Message) -> None:
-        """Add a message to memory"""
-        self.messages.append(message)
-        # Optional: Implement message limit
-        if len(self.messages) > self.max_messages:
-            self.messages = self.messages[-self.max_messages :]
 
-    def add_messages(self, messages: List[Message]) -> None:
-        """Add multiple messages to memory"""
-        self.messages.extend(messages)
 
-    def clear(self) -> None:
-        """Clear all messages"""
-        self.messages.clear()
-
-    def get_recent_messages(self, n: int) -> List[Message]:
-        """Get n most recent messages"""
-        return self.messages[-n:]
-
-    def to_dict_list(self) -> List[dict]:
-        """Convert messages to list of dicts"""
-        return [msg.to_dict() for msg in self.messages]

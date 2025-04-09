@@ -70,7 +70,7 @@ class BrowserAgent(ToolCallAgent):
             logger.debug(f"Failed to get browser state: {str(e)}")
             return None
 
-    async def think(self) -> bool:
+    async def think(self, session_id: str = "default") -> bool:
         """Process current state and decide next actions using tools, with browser state info added"""
         # Add browser state to the context
         browser_state = await self.get_browser_state()
@@ -109,7 +109,7 @@ class BrowserAgent(ToolCallAgent):
                     content="Current browser screenshot:",
                     base64_image=self._current_base64_image,
                 )
-                self.memory.add_message(image_message)
+                self.memory.add_message(image_message, session_id)
 
         # Replace placeholders with actual browser state info
         self.next_step_prompt = NEXT_STEP_PROMPT.format(
@@ -121,7 +121,7 @@ class BrowserAgent(ToolCallAgent):
         )
 
         # Call parent implementation
-        result = await super().think()
+        result = await super().think(session_id)
 
         # Reset the next_step_prompt to its original state
         self.next_step_prompt = NEXT_STEP_PROMPT

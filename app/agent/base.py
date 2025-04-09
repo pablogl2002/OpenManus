@@ -7,7 +7,8 @@ from pydantic import BaseModel, Field, model_validator
 from ..llm import LLM
 from ..logger import logger
 from ..sandbox import SANDBOX_CLIENT
-from ..schema import ROLE_TYPE, AgentState, Memory, Message
+from ..schema import ROLE_TYPE, AgentState, BaseMemory, Message
+from ..memory.memory import Memory
 
 
 class BaseAgent(BaseModel, ABC):
@@ -31,7 +32,7 @@ class BaseAgent(BaseModel, ABC):
 
     # Dependencies
     llm: LLM = Field(default_factory=LLM, description="Language model instance")
-    memory: Memory = Field(default_factory=Memory, description="Agent's memory store")
+    memory: BaseMemory = Field(default_factory=Memory, description="Agent's memory store")
     state: AgentState = Field(
         default=AgentState.IDLE, description="Current agent state"
     )
@@ -51,7 +52,7 @@ class BaseAgent(BaseModel, ABC):
         """Initialize agent with default settings if not provided."""
         if self.llm is None or not isinstance(self.llm, LLM):
             self.llm = LLM(config_name=self.name.lower())
-        if not isinstance(self.memory, Memory):
+        if not isinstance(self.memory, BaseMemory):
             self.memory = Memory()
         return self
 
@@ -86,6 +87,7 @@ class BaseAgent(BaseModel, ABC):
         role: ROLE_TYPE,  # type: ignore
         content: str,
         base64_image: Optional[str] = None,
+        session_id: str = "default",
         **kwargs,
     ) -> None:
         """Add a message to the agent's memory.
@@ -111,9 +113,9 @@ class BaseAgent(BaseModel, ABC):
 
         # Create message with appropriate parameters based on role
         kwargs = {"base64_image": base64_image, **(kwargs if role == "tool" else {})}
-        self.memory.add_message(message_map[role](content, **kwargs))
+        self.memory.add_message(message_map[role](content, **kwargs), session_id)
 
-    async def run(self, request: Optional[str] = None) -> str:
+    async def run(self, request: Optional[str] = None, session_id: str = "default") -> str:
         """Execute the agent's main loop asynchronously.
 
         Args:
@@ -141,7 +143,7 @@ class BaseAgent(BaseModel, ABC):
                 step_result = await self.step()
 
                 # Check for stuck state
-                if self.is_stuck():
+                if self.is_stuck(session_id=session_id):
                     self.handle_stuck_state()
 
                 results.append(f"Step {self.current_step}: {step_result}")
@@ -154,7 +156,7 @@ class BaseAgent(BaseModel, ABC):
         return "\n".join(results) if results else "No steps executed"
 
     @abstractmethod
-    async def step(self) -> str:
+    async def step(self, session_id: str = "default") -> str:
         """Execute a single step in the agent's workflow.
 
         Must be implemented by subclasses to define specific behavior.
@@ -167,30 +169,31 @@ class BaseAgent(BaseModel, ABC):
         self.next_step_prompt = f"{stuck_prompt}\n{self.next_step_prompt}"
         logger.warning(f"Agent detected stuck state. Added prompt: {stuck_prompt}")
 
-    def is_stuck(self) -> bool:
+    def is_stuck(self, session_id: str) -> bool:
         """Check if the agent is stuck in a loop by detecting duplicate content"""
-        if len(self.memory.messages) < 2:
+        if len(self.memory.get_session_messages(session_id=session_id)) < 2:
             return False
 
-        last_message = self.memory.messages[-1]
+        last_message = self.memory.get_session_messages(session_id=session_id)[-1]
         if not last_message.content:
             return False
 
         # Count identical content occurrences
         duplicate_count = sum(
             1
-            for msg in reversed(self.memory.messages[:-1])
+            for msg in reversed(self.memory.get_session_messages(session_id=session_id)[:-1])
             if msg.role == "assistant" and msg.content == last_message.content
         )
 
         return duplicate_count >= self.duplicate_threshold
 
-    @property
-    def messages(self) -> List[Message]:
-        """Retrieve a list of messages from the agent's memory."""
-        return self.memory.messages
+    ## We don't have Agent's memory is a external memory that is not property of the agent
+    # @property
+    # def messages(self, session_id: str) -> List[Message]:
+    #     """Retrieve a list of messages from the agent's memory."""
+    #     return self.memory.get_session_messages(session_id=session_id)
 
-    @messages.setter
-    def messages(self, value: List[Message]):
-        """Set the list of messages in the agent's memory."""
-        self.memory.messages = value
+    # @messages.setter
+    # def messages(self, value: List[Message], session_id: str):
+    #     """Set the list of messages in the agent's memory."""
+    #     self.memory.get_session_messages(session_id=session_id) = value

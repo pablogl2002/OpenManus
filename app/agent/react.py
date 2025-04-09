@@ -5,8 +5,8 @@ from pydantic import Field
 
 from ..agent.base import BaseAgent
 from ..llm import LLM
-from ..schema import AgentState, Memory
-
+from ..schema import AgentState
+# , BaseMemory
 
 class ReActAgent(BaseAgent, ABC):
     name: str
@@ -16,21 +16,21 @@ class ReActAgent(BaseAgent, ABC):
     next_step_prompt: Optional[str] = None
 
     llm: Optional[LLM] = Field(default_factory=LLM)
-    memory: Memory = Field(default_factory=Memory)
+    # memory: BaseMemory = Field(default_factory=BaseMemory)
     state: AgentState = AgentState.IDLE
 
     max_steps: int = 10
     current_step: int = 0
 
     @abstractmethod
-    async def think(self) -> bool:
+    async def think(self, session_id: str =  "default") -> bool:
         """Process current state and decide next action"""
 
     @abstractmethod
-    async def act(self) -> str:
+    async def act(self, session_id: str =  "default") -> str:
         """Execute decided actions"""
 
-    async def step(self) -> str:
+    async def step(self, session_id: str =  "default") -> str:
         """Execute a single step: think and act."""
         should_act = await self.think()
         if not should_act:

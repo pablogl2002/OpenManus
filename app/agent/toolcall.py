@@ -35,16 +35,16 @@ class ToolCallAgent(ReActAgent):
     max_steps: int = 30
     max_observe: Optional[Union[int, bool]] = None
 
-    async def think(self) -> bool:
+    async def think(self, session_id: str = "default") -> bool:
         """Process current state and decide next actions using tools"""
         if self.next_step_prompt:
             user_msg = Message.user_message(self.next_step_prompt)
-            self.messages += [user_msg]
+            self.memory.add_message(user_msg, session_id)
 
         try:
             # Get response with tool options
             response = await self.llm.ask_tool(
-                messages=self.messages,
+                messages=self.memory.get_session_messages(session_id),
                 system_msgs=(
                     [Message.system_message(self.system_prompt)]
                     if self.system_prompt
@@ -127,21 +127,21 @@ class ToolCallAgent(ReActAgent):
             )
             return False
 
-    async def act(self) -> str:
+    async def act(self, session_id: str = "default") -> str:
         """Execute tool calls and handle their results"""
         if not self.tool_calls:
             if self.tool_choices == ToolChoice.REQUIRED:
                 raise ValueError(TOOL_CALL_REQUIRED)
 
             # Return last message content if no tool calls
-            return self.messages[-1].content or "No content or commands to execute"
+            return self.memory.get_recent_messages(n=1, session_id=session_id) or "No content or commands to execute"
 
         results = []
         for command in self.tool_calls:
             # Reset base64_image for each tool call
             self._current_base64_image = None
 
-            result = await self.execute_tool(command)
+            result = await self.execute_tool(command, session_id)
 
             if self.max_observe:
                 result = result[: self.max_observe]
@@ -162,7 +162,7 @@ class ToolCallAgent(ReActAgent):
 
         return "\n\n".join(results)
 
-    async def execute_tool(self, command: ToolCall) -> str:
+    async def execute_tool(self, command: ToolCall, session_id: str = "default") -> str:
         """Execute a single tool call with robust error handling"""
         if not command or not command.function or not command.function.name:
             return "Error: Invalid command format"
@@ -180,7 +180,7 @@ class ToolCallAgent(ReActAgent):
             result = await self.available_tools.execute(name=name, tool_input=args)
 
             # Handle special tools
-            await self._handle_special_tool(name=name, result=result)
+            await self._handle_special_tool(name=name, result=result, session_id=session_id)
 
             # Check if result is a ToolResult with base64_image
             if hasattr(result, "base64_image") and result.base64_image:
@@ -214,7 +214,7 @@ class ToolCallAgent(ReActAgent):
             logger.exception(error_msg)
             return f"Error: {error_msg}"
 
-    async def _handle_special_tool(self, name: str, result: Any, **kwargs):
+    async def _handle_special_tool(self, name: str, result: Any, session_id: str = "default", **kwargs):
         """Handle special tool execution and state changes"""
         if not self._is_special_tool(name):
             return
