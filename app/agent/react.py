@@ -32,7 +32,6 @@ class ReActAgent(BaseAgent, ABC):
 
     async def step(self, session_id: str =  "default") -> str:
         """Execute a single step: think and act."""
-        print("REACT AGENT step: ", session_id)
         should_act = await self.think(session_id=session_id)
         if not should_act:
             return "Thinking complete - no action needed"
