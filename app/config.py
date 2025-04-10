@@ -275,7 +275,7 @@ class Config:
 
     @property
     def memory_config(self) -> Optional[MemorySettings]:
-        return self._config.memory_settings
+        return self._config.memory_config
 
     @property
     def workspace_root(self) -> Path:
