@@ -1,7 +1,7 @@
 from ..schema import BaseMemory, Message
 from libs.redis_adapter.main import RedisHandler
 from pydantic import Field
-from typing import List
+from typing import List, ClassVar
 
 import ast
 
@@ -13,7 +13,7 @@ print("REDIS: ", memory_config)
 class RedisMemory(BaseMemory):
     max_messages: int = Field(default=100)
 
-    redis_handler: RedisHandler = RedisHandler(
+    redis_handler: ClassVar[RedisHandler] = RedisHandler(
         redis_broker=memory_config.config.host,
         redis_broker_port=memory_config.config.port,
         redis_db=memory_config.config.database,
