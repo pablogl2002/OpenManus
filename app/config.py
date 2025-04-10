@@ -218,7 +218,7 @@ class Config:
             sandbox_settings = SandboxSettings()
 
 
-        memory_config = raw_config.get("memory")
+        memory_config = raw_config.get("memory", {})
         memory_settings = None
         if memory_config:
             provider = memory_config.get("provider", "local")
@@ -238,7 +238,8 @@ class Config:
                 config=provider_settings
             )
 
-        print(memory_settings)
+        print("RAW", raw_config)
+        print("MEMORY SETTINGS", memory_settings)
 
         config_dict = {
             "llm": {
