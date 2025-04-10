@@ -29,7 +29,7 @@ class CoTAgent(BaseAgent):
 
         # If next_step_prompt exists and this isn't the first message, add it to user messages
         if self.next_step_prompt and len(session_messages) > 1:
-            self.memory.add_message(Message.user_message(self.next_step_prompt))
+            self.memory.add_message(Message.user_message(self.next_step_prompt), session_id=session_id)
 
         # Use system prompt and user messages
         response = await self.llm.ask(

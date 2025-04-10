@@ -114,11 +114,11 @@ class PlanningAgent(ToolCallAgent):
         )
         return result.output if hasattr(result, "output") else str(result)
 
-    async def run(self, request: Optional[str] = None) -> str:
+    async def run(self, request: Optional[str] = None, session_id: str = "default") -> str:
         """Run the agent with an optional initial request."""
         if request:
-            await self.create_initial_plan(request)
-        return await super().run()
+            await self.create_initial_plan(request, session_id)
+        return await super().run(session_id=session_id)
 
     async def update_plan_status(self, tool_call_id: str) -> None:
         """
@@ -199,7 +199,7 @@ class PlanningAgent(ToolCallAgent):
             logger.warning(f"Error finding current step index: {e}")
             return None
 
-    async def create_initial_plan(self, request: str) -> None:
+    async def create_initial_plan(self, request: str, session_id: str = "default") -> None:
         """Create an initial plan based on the request."""
         logger.info(f"Creating initial plan with ID: {self.active_plan_id}")
 
@@ -219,7 +219,7 @@ class PlanningAgent(ToolCallAgent):
             content=response.content, tool_calls=response.tool_calls
         )
 
-        self.memory.add_message(assistant_msg)
+        self.memory.add_message(assistant_msg, session_id)
 
         plan_created = False
         for tool_call in response.tool_calls:
@@ -235,7 +235,7 @@ class PlanningAgent(ToolCallAgent):
                     tool_call_id=tool_call.id,
                     name=tool_call.function.name,
                 )
-                self.memory.add_message(tool_msg)
+                self.memory.add_message(tool_msg, session_id)
                 plan_created = True
                 break
 
@@ -244,7 +244,7 @@ class PlanningAgent(ToolCallAgent):
             tool_msg = Message.assistant_message(
                 "Error: Parameter `plan_id` is required for command: create"
             )
-            self.memory.add_message(tool_msg)
+            self.memory.add_message(tool_msg, session_id)
 
 
 async def main():

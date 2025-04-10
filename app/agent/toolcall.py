@@ -65,7 +65,8 @@ class ToolCallAgent(ReActAgent):
                 self.memory.add_message(
                     Message.assistant_message(
                         f"Maximum token limit reached, cannot continue execution: {str(token_limit_error)}"
-                    )
+                    ),
+                    session_id
                 )
                 self.state = AgentState.FINISHED
                 return False
@@ -98,7 +99,7 @@ class ToolCallAgent(ReActAgent):
                         f"🤔 Hmm, {self.name} tried to use tools when they weren't available!"
                     )
                 if content:
-                    self.memory.add_message(Message.assistant_message(content))
+                    self.memory.add_message(Message.assistant_message(content), session_id)
                     return True
                 return False
 
@@ -108,7 +109,7 @@ class ToolCallAgent(ReActAgent):
                 if self.tool_calls
                 else Message.assistant_message(content)
             )
-            self.memory.add_message(assistant_msg)
+            self.memory.add_message(assistant_msg, session_id)
 
             if self.tool_choices == ToolChoice.REQUIRED and not self.tool_calls:
                 return True  # Will be handled in act()
@@ -123,7 +124,8 @@ class ToolCallAgent(ReActAgent):
             self.memory.add_message(
                 Message.assistant_message(
                     f"Error encountered while processing: {str(e)}"
-                )
+                ),
+                session_id
             )
             return False
 
@@ -157,7 +159,7 @@ class ToolCallAgent(ReActAgent):
                 name=command.function.name,
                 base64_image=self._current_base64_image,
             )
-            self.memory.add_message(tool_msg)
+            self.memory.add_message(tool_msg, session_id)
             results.append(result)
 
         return "\n\n".join(results)

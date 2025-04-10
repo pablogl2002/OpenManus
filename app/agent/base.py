@@ -143,7 +143,7 @@ class BaseAgent(BaseModel, ABC):
             raise RuntimeError(f"Cannot run agent from state: {self.state}")
 
         if request:
-            self.update_memory("user", request)
+            self.update_memory("user", request, session_id=session_id)
 
         results: List[str] = []
         async with self.state_context(AgentState.RUNNING):
@@ -187,7 +187,6 @@ class BaseAgent(BaseModel, ABC):
             return False
 
         last_message = self.memory.get_session_messages(session_id=session_id)[-1]
-        print(last_message)
         if not last_message.content:
             return False
 
