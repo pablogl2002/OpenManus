@@ -1,5 +1,5 @@
 from ..schema import BaseMemory, Message
-from ..libs.redis_adapter.main import RedisHandler
+from ..libs.redis_adapter import RedisHandler
 from pydantic import Field
 from typing import List, ClassVar
 
