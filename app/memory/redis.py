@@ -8,7 +8,6 @@ import ast
 from ..config import config
 
 memory_config = config.memory_config
-print("REDIS: ", memory_config)
 
 class RedisMemory(BaseMemory):
     max_messages: int = Field(default=100)

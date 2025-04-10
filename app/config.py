@@ -238,8 +238,6 @@ class Config:
                 config=provider_settings
             )
 
-        print("RAW", raw_config)
-        print("MEMORY SETTINGS", memory_settings)
 
         config_dict = {
             "llm": {
