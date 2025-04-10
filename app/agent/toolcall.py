@@ -37,6 +37,7 @@ class ToolCallAgent(ReActAgent):
 
     async def think(self, session_id: str = "default") -> bool:
         """Process current state and decide next actions using tools"""
+        print("TOOL CALL AGENT think: ", session_id)
         if self.next_step_prompt:
             user_msg = Message.user_message(self.next_step_prompt)
             self.memory.add_message(user_msg, session_id)
@@ -131,6 +132,7 @@ class ToolCallAgent(ReActAgent):
 
     async def act(self, session_id: str = "default") -> str:
         """Execute tool calls and handle their results"""
+        print("TOOL CALL AGENT act: ", session_id)
         if not self.tool_calls:
             if self.tool_choices == ToolChoice.REQUIRED:
                 raise ValueError(TOOL_CALL_REQUIRED)
@@ -166,6 +168,7 @@ class ToolCallAgent(ReActAgent):
 
     async def execute_tool(self, command: ToolCall, session_id: str = "default") -> str:
         """Execute a single tool call with robust error handling"""
+        print("TOOL CALL AGENT execute_tool: ", session_id)
         if not command or not command.function or not command.function.name:
             return "Error: Invalid command format"
 
@@ -218,6 +221,7 @@ class ToolCallAgent(ReActAgent):
 
     async def _handle_special_tool(self, name: str, result: Any, session_id: str = "default", **kwargs):
         """Handle special tool execution and state changes"""
+        print("TOOL CALL AGENT _handle_special_tool: ", session_id)
         if not self._is_special_tool(name):
             return
 

@@ -65,7 +65,7 @@ class BaseAgent(BaseModel, ABC):
         if self.llm is None or not isinstance(self.llm, LLM):
             self.llm = LLM(config_name=self.name.lower())
         if not isinstance(self.memory, BaseMemory):
-            self.memory = Memory()
+            self.memory = self.memory_type()
         return self
 
     @asynccontextmanager
@@ -113,6 +113,7 @@ class BaseAgent(BaseModel, ABC):
         Raises:
             ValueError: If the role is unsupported.
         """
+        print("BASE AGENT update_memory: ", session_id)
         message_map = {
             "user": Message.user_message,
             "system": Message.system_message,
@@ -139,6 +140,7 @@ class BaseAgent(BaseModel, ABC):
         Raises:
             RuntimeError: If the agent is not in IDLE state at start.
         """
+        print("BASE AGENT run: ", session_id)
         if self.state != AgentState.IDLE:
             raise RuntimeError(f"Cannot run agent from state: {self.state}")
 
@@ -183,6 +185,7 @@ class BaseAgent(BaseModel, ABC):
 
     def is_stuck(self, session_id: str) -> bool:
         """Check if the agent is stuck in a loop by detecting duplicate content"""
+        print("BASE AGENT is_stuck: ", session_id)
         if len(self.memory.get_session_messages(session_id=session_id)) < 2:
             return False
 
