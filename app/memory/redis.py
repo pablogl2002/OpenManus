@@ -64,7 +64,7 @@ class RedisMemory(BaseMemory):
         else:
             messages = []
 
-        return messages[-n:]
+        return [Message(**msg) for msg in messages[-n:]]
 
     def get_session_messages(self, session_id: str="default") -> List[Message]:
         messages = self.redis_handler.get(f"ai:messages:{session_id}")
