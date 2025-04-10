@@ -9,6 +9,10 @@ from ..logger import logger
 from ..sandbox import SANDBOX_CLIENT
 from ..schema import ROLE_TYPE, AgentState, BaseMemory, Message
 from ..memory.memory import Memory
+from ..memory.redis import RedisMemory
+
+from ..config import config
+memory_config = config.memory_config
 
 
 class BaseAgent(BaseModel, ABC):
@@ -32,7 +36,15 @@ class BaseAgent(BaseModel, ABC):
 
     # Dependencies
     llm: LLM = Field(default_factory=LLM, description="Language model instance")
-    memory: BaseMemory = Field(default_factory=Memory, description="Agent's memory store")
+
+
+    if memory_config.provider == 'redis':
+        memory_type = RedisMemory
+    else:
+        memory_type = Memory
+    memory: BaseMemory = Field(default_factory=memory_type, description="Agent's memory store")
+
+
     state: AgentState = Field(
         default=AgentState.IDLE, description="Current agent state"
     )

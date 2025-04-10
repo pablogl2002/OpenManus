@@ -3,18 +3,20 @@ from libs.redis_adapter.main import RedisHandler
 from pydantic import Field
 from typing import List
 
-import os
 import ast
 
+from ..config import config
+
+memory_config = config.memory_config
 
 class RedisMemory(BaseMemory):
     max_messages: int = Field(default=100)
 
     redis_handler = RedisHandler(
-        redis_broker=os.getenv("REDIS_BROKER"),
-        redis_broker_port=os.getenv("REDIS_BROKER_PORT"),
-        redis_db=os.getenv("REDIS_DB"),
-        redis_pwd=os.getenv("REDIS_PWD"),
+        redis_broker=memory_config.config.host,
+        redis_broker_port=memory_config.config.port,
+        redis_db=memory_config.config.database,
+        redis_pwd=memory_config.config.password,
     )
 
     def add_message(self, message: Message, session_id: str="default") -> None:

@@ -1,7 +1,7 @@
 import threading
 import tomllib
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -14,6 +14,16 @@ def get_project_root() -> Path:
 
 PROJECT_ROOT = get_project_root()
 WORKSPACE_ROOT = PROJECT_ROOT / "workspace"
+
+class RedisMemoryConfig(BaseModel):
+    host: str = Field(..., description="Redis broker host")
+    port: int = Field(..., description="Redis broker port")
+    database: int = Field(..., description="Redis database")
+    password: str = Field(..., description="Redis password")
+
+class MemorySettings(BaseModel):
+    provider: str = Field(..., description="Memory provider") # local or redis
+    config: Optional[Union[RedisMemoryConfig]] = Field(..., description="Non local memory config")
 
 
 class LLMSettings(BaseModel):
@@ -100,6 +110,9 @@ class AppConfig(BaseModel):
         None, description="Browser configuration"
     )
     search_config: Optional[SearchSettings] = Field(
+        None, description="Search configuration"
+    )
+    memory_settings: Optional[MemorySettings] = Field(
         None, description="Search configuration"
     )
 
@@ -204,6 +217,29 @@ class Config:
         else:
             sandbox_settings = SandboxSettings()
 
+
+        memory_config = raw_config.get("memory")
+        memory_settings = None
+        if memory_config:
+            provider = memory_config.get("provider", "local")
+            provider_config = memory_config.get(provider, None)
+            provider_settings = None
+            if provider_config:
+                if provider == 'redis':
+                    provider_settings = RedisMemoryConfig(
+                        **{
+                            k: v
+                            for k, v in provider_config.items()
+                            if k in ['host', 'port', 'database', 'password'] and v
+                        }
+                    )
+            memory_settings = MemorySettings(
+                provider=provider,
+                config=provider_settings
+            )
+
+        print(memory_settings)
+
         config_dict = {
             "llm": {
                 "default": default_settings,
@@ -215,6 +251,7 @@ class Config:
             "sandbox": sandbox_settings,
             "browser_config": browser_settings,
             "search_config": search_settings,
+            "memory_config": memory_settings
         }
 
         self._config = AppConfig(**config_dict)
@@ -234,6 +271,10 @@ class Config:
     @property
     def search_config(self) -> Optional[SearchSettings]:
         return self._config.search_config
+
+    @property
+    def memory_config(self) -> Optional[MemorySettings]:
+        return self._config.memory_settings
 
     @property
     def workspace_root(self) -> Path:
