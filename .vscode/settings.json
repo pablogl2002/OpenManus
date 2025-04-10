@@ -18,6 +18,7 @@
     "files.trimTrailingWhitespace": true,
     "editor.formatOnSave": true,
     "conventionalCommits.scopes": [
-        "memory sessions management"
+        "memory sessions management",
+        "redis"
     ]
 }
