@@ -154,7 +154,7 @@ class BaseAgent(BaseModel, ABC):
             ):
                 self.current_step += 1
                 logger.info(f"Executing step {self.current_step}/{self.max_steps}")
-                step_result = await self.step()
+                step_result = await self.step(session_id=session_id)
 
                 # Check for stuck state
                 if self.is_stuck(session_id=session_id):

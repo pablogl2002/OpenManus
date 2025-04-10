@@ -224,7 +224,7 @@ class PlanningAgent(ToolCallAgent):
         plan_created = False
         for tool_call in response.tool_calls:
             if tool_call.function.name == "planning":
-                result = await self.execute_tool(tool_call)
+                result = await self.execute_tool(tool_call, session_id)
                 logger.info(
                     f"Executed tool {tool_call.function.name} with result: {result}"
                 )
