@@ -39,9 +39,9 @@ class BaseAgent(BaseModel, ABC):
 
 
     if memory_config.provider == 'redis':
-        memory_type = RedisMemory
+        memory_type: BaseMemory = RedisMemory
     else:
-        memory_type = Memory
+        memory_type: BaseMemory = Memory
     memory: BaseMemory = Field(default_factory=memory_type, description="Agent's memory store")
 
 
