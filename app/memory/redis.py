@@ -73,7 +73,7 @@ class RedisMemory(BaseMemory):
         else:
             messages = []
 
-        return messages
+        return [Message(**msg) for msg in messages]
 
     def to_dict_list(self, session_id: str="default") -> List[dict]:
         """Convert messages to list of dicts"""

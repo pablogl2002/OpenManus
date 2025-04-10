@@ -187,6 +187,7 @@ class BaseAgent(BaseModel, ABC):
             return False
 
         last_message = self.memory.get_session_messages(session_id=session_id)[-1]
+        print(last_message)
         if not last_message.content:
             return False
 
