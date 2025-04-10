@@ -13,7 +13,7 @@ print("REDIS: ", memory_config)
 class RedisMemory(BaseMemory):
     max_messages: int = Field(default=100)
 
-    redis_handler = RedisHandler(
+    redis_handler: RedisHandler = RedisHandler(
         redis_broker=memory_config.config.host,
         redis_broker_port=memory_config.config.port,
         redis_db=memory_config.config.database,
