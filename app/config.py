@@ -112,7 +112,7 @@ class AppConfig(BaseModel):
     search_config: Optional[SearchSettings] = Field(
         None, description="Search configuration"
     )
-    memory_settings: Optional[MemorySettings] = Field(
+    memory_config: Optional[MemorySettings] = Field(
         None, description="Search configuration"
     )
 
