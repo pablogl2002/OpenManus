@@ -144,7 +144,8 @@ class Manus(ToolCallAgent):
             self._initialized = True
 
         original_prompt = self.next_step_prompt
-        recent_messages = self.memory.messages[-3:] if self.memory.messages else []
+        recent_messages = self.memory.get_recent_messages(3)
+        # recent_messages = self.memory.messages[-3:] if self.memory.messages else []
         browser_in_use = any(
             tc.function.name == BrowserUseTool().name
             for msg in recent_messages
