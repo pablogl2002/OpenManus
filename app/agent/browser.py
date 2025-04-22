@@ -12,7 +12,7 @@ from ..tool import BrowserUseTool, Terminate, ToolCollection
 
 # Avoid circular import if BrowserAgent needs BrowserContextHelper
 if TYPE_CHECKING:
-    from app.agent.base import BaseAgent  # Or wherever memory is defined
+    from ..agent.base import BaseAgent
 
 
 class BrowserContextHelper:
