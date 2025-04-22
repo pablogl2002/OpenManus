@@ -252,9 +252,9 @@ class ToolCallAgent(ReActAgent):
                     )
         logger.info(f"✨ Cleanup complete for agent '{self.name}'.")
 
-    async def run(self, request: Optional[str] = None) -> str:
+    async def run(self, request: Optional[str] = None, session_id: str = "default") -> str:
         """Run the agent with cleanup when done."""
         try:
-            return await super().run(request)
+            return await super().run(request, session_id)
         finally:
             await self.cleanup()
