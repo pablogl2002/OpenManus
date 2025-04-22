@@ -1,4 +1,4 @@
-from ..tool.base import BaseTool
+from ..tool.base import BaseTool, ToolResult
 from ..tool.bash import Bash
 from ..tool.browser_use_tool import BrowserUseTool
 from ..tool.create_chat_completion import CreateChatCompletion
@@ -12,6 +12,7 @@ from ..tool.web_search import WebSearch
 
 __all__ = [
     "BaseTool",
+    "ToolResult",
     "Bash",
     "BrowserUseTool",
     "CreateChatCompletion",
