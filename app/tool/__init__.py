@@ -8,6 +8,7 @@ from ..tool.str_replace_editor import StrReplaceEditor
 from ..tool.terminate import Terminate
 from ..tool.tool_collection import ToolCollection
 from ..tool.web_search import WebSearch
+from ..tool.mcp import MCPClients
 
 
 __all__ = [
@@ -21,5 +22,6 @@ __all__ = [
     "StrReplaceEditor",
     "Terminate",
     "ToolCollection",
-    "WebSearch"
+    "WebSearch",
+    "MCPClients"
 ]
