@@ -8,7 +8,7 @@ from docker.errors import APIError, ImageNotFound
 
 from ...config import SandboxSettings
 from ...logger import logger
-from .sandbox import DockerSandbox
+from ...sandbox.core.sandbox import DockerSandbox
 
 class SandboxManager:
     """Docker sandbox manager.

@@ -137,7 +137,7 @@ class ToolCallAgent(ReActAgent):
                 raise ValueError(TOOL_CALL_REQUIRED)
 
             # Return last message content if no tool calls
-            return self.memory.get_recent_messages(n=1, session_id=session_id) or "No content or commands to execute"
+            return self.memory.get_recent_messages(n=1, session_id=session_id)[0].content or "No content or commands to execute"
 
         results = []
         for command in self.tool_calls:
